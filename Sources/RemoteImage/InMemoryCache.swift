@@ -8,12 +8,13 @@
 import Foundation
 
 actor InMemoryCache {
-    let fileSystemLoader: FileSystemImageLoader
+
+    let networkLoader: NetworkImageLoader
 
     private let cache = NSCache<NSURL, ImageType>()
 
-    init(fileSystemLoader: FileSystemImageLoader) {
-        self.fileSystemLoader = fileSystemLoader
+    init(networkLoader: NetworkImageLoader) {
+        self.networkLoader = networkLoader
     }
 
     func loadImage(from url: URL) async throws -> ImageType {
@@ -21,7 +22,7 @@ actor InMemoryCache {
             return cached
         }
 
-        let loaded = try await fileSystemLoader.loadImage(from: url)
+        let loaded = try await networkLoader.loadImage(from: url)
         cache.setObject(loaded, forKey: url as NSURL)
         return loaded
     }

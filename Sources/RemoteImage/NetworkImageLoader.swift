@@ -11,21 +11,13 @@ actor NetworkImageLoader {
 
     private let session: URLSession
 
-    private var downloadTasks: [URL: Task<LoadedImage, Error>] = [:]
+    private var downloadTasks: [URL: Task<ImageType, Error>] = [:]
 
     init(session: URLSession = .shared) {
         self.session = session
     }
 
-    func metadata(for url: URL) async throws {
-        var request = URLRequest(url: url)
-        request.httpMethod = "HEAD"
-
-        let (data, response) = try await session.data(for: request)
-        
-    }
-
-    func loadImage(from url: URL) async throws -> LoadedImage {
+    func loadImage(from url: URL) async throws -> ImageType {
         if let task = downloadTasks[url] {
             return try await task.value
         }
@@ -41,7 +33,7 @@ actor NetworkImageLoader {
         return try await task.value
     }
 
-    private func downloadImage(from url: URL) async throws -> LoadedImage {
+    private func downloadImage(from url: URL) async throws -> ImageType {
         let (data, response) = try await session.data(for: URLRequest(url: url))
         guard let response = response as? HTTPURLResponse else {
             throw ImageLoaderError.invalidResponse
@@ -51,6 +43,10 @@ actor NetworkImageLoader {
             throw ImageLoaderError.httpStatusError(response.statusCode)
         }
 
-        return try LoadedImage(data: data)
+        guard let image = ImageType(data: data) else {
+            throw ImageLoaderError.unableToLoadImage
+        }
+
+        return image
     }
 }

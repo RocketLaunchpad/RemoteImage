@@ -13,8 +13,7 @@ public class RemoteImageLoader {
 
     init(session: URLSession = .shared) {
         let networkLoader = NetworkImageLoader(session: session)
-        let fileSystemLoader = FileSystemImageLoader(networkLoader: networkLoader)
-        inMemoryCache = InMemoryCache(fileSystemLoader: fileSystemLoader)
+        inMemoryCache = InMemoryCache(networkLoader: networkLoader)
     }
 
     func loadImage(from url: URL) async throws -> ImageType {
