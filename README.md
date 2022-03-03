@@ -1,6 +1,8 @@
 # RemoteImage
 
-`RemoteImage` provides a simple interface to asynchronously load images over the network in SwiftUI. It makes use of Apple's built-in `URLCache` for offline caching of images, helping to reduce network usage in your app.
+`RemoteImage` provides a simple interface to asynchronously load images over the network in SwiftUI. It makes use of Apple's built-in `URLCache` for persistent caching of images, helping to reduce network usage in your app.
+
+`RemoteImage` has an API that is similar to SwiftUI's `AsyncImage`. The primary differences are that `AsyncImage` requires iOS 15 or later while `RemoteImage` supports back to iOS 13. Also, `AsyncImage` doesn't appear to do any persistent caching.
 
 ## Integration
 
@@ -19,7 +21,7 @@ Use the `RemoteImage` view to load and display an image from the Internet.
 ```swift
 RemoteImage(url: url) { phase in
     if case .success(let image) = phase {
-        // Display the image if successfully loaded 
+        // Display the image if successfully loaded
         image.resizable()
     }
     else {
