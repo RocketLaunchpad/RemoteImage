@@ -1,6 +1,6 @@
 # RemoteImage
 
-RemoteImage provides a simple interface to asynchronously load images over the network in SwiftUI. It makes use of Apple's built-in `URLCache` for offline caching of images, helping to reduce network usage in your app.
+`RemoteImage` provides a simple interface to asynchronously load images over the network in SwiftUI. It makes use of Apple's built-in `URLCache` for offline caching of images, helping to reduce network usage in your app.
 
 ## Integration
 
@@ -62,7 +62,7 @@ The `RemoteImage` view type uses the `ImageLoader` class to load images. A defau
 
 Generally the default `ImageLoader` instance (accessible via `ImageLoader.default`) should be sufficient. Providing a custom `ImageLoader` allows you to change the identifier and log level, as well as the disk cache and in-memory cache sizes.
 
-```
+```swift
 import SwiftUI
 import RemoteImage
 
