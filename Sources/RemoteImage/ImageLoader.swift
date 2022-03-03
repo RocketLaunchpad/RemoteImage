@@ -16,18 +16,20 @@ public enum ImageLoaderError: Error {
 
 public actor ImageLoader {
 
-    public static let `default` = ImageLoader()
+    public static let `default` = ImageLoader(identifier: "default")
+
+    private let identifier: String
 
     private let session: URLSession
 
     private var downloadTasks: [URL: Task<ImageType, Error>] = [:]
 
-    init(memoryCacheSize: Int = 10 * (1 << 20), fileSystemCacheSize: Int = 200 * (1 << 20)) {
-        // https://pspdfkit.com/blog/2020/downloading-large-files-with-urlsession/
-        
+    public init(identifier: String, memoryCacheSize: Int = 10 * (1 << 20), fileSystemCacheSize: Int = 200 * (1 << 20)) {
+        self.identifier = identifier
+
         let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-        let diskCacheURL = cachesURL.appendingPathComponent("ImageCache")
-        log.info("ImageLoader.diskCacheURL: \(diskCacheURL)")
+        let diskCacheURL = cachesURL.appendingPathComponent("ImageCache-\(identifier)")
+        log.info("[ImageLoader.\(identifier)] diskCacheURL: \(diskCacheURL)")
 
         let cache = URLCache(
             memoryCapacity: memoryCacheSize,
@@ -40,7 +42,7 @@ public actor ImageLoader {
         self.session = URLSession(configuration: config)
     }
 
-    func loadImage(from url: URL) async throws -> ImageType {
+    public func loadImage(from url: URL) async throws -> ImageType {
         if let task = downloadTasks[url] {
             return try await task.value
         }
@@ -61,7 +63,8 @@ public actor ImageLoader {
         let (data, response) = try await data(for: request(for: url))
         let end = Date().timeIntervalSinceReferenceDate
 
-        log.info("Downloaded \(data.count) byte(s) in \(end - start) second")
+        let msg = String(format: "[ImageLoader.\(identifier)] Downloaded %ld byte(s) in %.03f second(s)", data.count, end - start)
+        log.info("\(msg)")
 
         guard let response = response as? HTTPURLResponse else {
             log.error("response is not an HTTPURLResponse")

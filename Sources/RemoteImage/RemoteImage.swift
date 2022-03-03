@@ -23,14 +23,14 @@ class RemoteImageViewModel: ObservableObject {
     private var task: Task<Void, Never>?
 
     init(url: URL) {
-        self.url = url
         self.phase = .empty
+        self.url = url
     }
 
-    func load() {
+    func load(imageLoader: ImageLoader) {
         task = Task(priority: .userInitiated) { [weak self] in
             do {
-                self?.phase = .success(try await ImageLoader.default.loadImage(from: url).swiftUIImage)
+                self?.phase = .success(try await imageLoader.loadImage(from: url).swiftUIImage)
             }
             catch {
                 self?.phase = .failure(error)
@@ -38,18 +38,20 @@ class RemoteImageViewModel: ObservableObject {
         }
     }
 
-    func clear() {
+    func unload() {
         phase = .empty
     }
 }
 
-public struct RemoteImage<Content>: View where Content: View
-{
+public struct RemoteImage<Content>: View where Content: View {
+
+    @Environment(\.imageLoader) var imageLoader
+
     @ObservedObject private var viewModel: RemoteImageViewModel
 
     private var content: (RemoteImagePhase) -> Content
 
-    public init(url: URL, content: @escaping (RemoteImagePhase) -> Content) {
+    public init(url: URL, @ViewBuilder content: @escaping (RemoteImagePhase) -> Content) {
         self.viewModel = RemoteImageViewModel(url: url)
         self.content = content
     }
@@ -57,10 +59,10 @@ public struct RemoteImage<Content>: View where Content: View
     public var body: some View {
         content(viewModel.phase)
             .onAppear {
-                viewModel.load()
+                viewModel.load(imageLoader: imageLoader)
             }
             .onDisappear {
-                viewModel.clear()
+                viewModel.unload()
             }
     }
 }
