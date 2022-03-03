@@ -14,7 +14,7 @@ import SwiftUI
 import UIKit
 public typealias ImageType = UIImage
 
-internal extension ImageType {
+extension ImageType {
     var swiftUIImage: Image {
         Image(uiImage: self)
     }
@@ -25,7 +25,7 @@ internal extension ImageType {
 import AppKit
 public typealias ImageType = NSImage
 
-internal extension ImageType {
+extension ImageType {
     var swiftUIImage: Image {
         Image(nsImage: self)
     }
