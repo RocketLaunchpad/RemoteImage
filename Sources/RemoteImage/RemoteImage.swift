@@ -37,6 +37,10 @@ class RemoteImageViewModel: ObservableObject {
             }
         }
     }
+
+    func clear() {
+        phase = .empty
+    }
 }
 
 public struct RemoteImage<Content>: View where Content: View
@@ -54,6 +58,9 @@ public struct RemoteImage<Content>: View where Content: View
         content(viewModel.phase)
             .onAppear {
                 viewModel.load()
+            }
+            .onDisappear {
+                viewModel.clear()
             }
     }
 }
