@@ -13,6 +13,7 @@ public enum RemoteImagePhase {
     case failure(Error)
 }
 
+@MainActor
 class RemoteImageViewModel: ObservableObject {
 
     @Published var phase: RemoteImagePhase
@@ -23,16 +24,16 @@ class RemoteImageViewModel: ObservableObject {
 
     init(url: URL) {
         self.url = url
-        phase = .empty
+        self.phase = .empty
     }
 
     func load() {
-        task = Task {
+        task = Task(priority: .userInitiated) { [weak self] in
             do {
-                phase = .success(try await ImageLoader.default.loadImage(from: url).swiftUIImage)
+                self?.phase = .success(try await ImageLoader.default.loadImage(from: url).swiftUIImage)
             }
             catch {
-                phase = .failure(error)
+                self?.phase = .failure(error)
             }
         }
     }
@@ -44,12 +45,15 @@ public struct RemoteImage<Content>: View where Content: View
 
     private var content: (RemoteImagePhase) -> Content
 
-    init(url: URL, content: @escaping (RemoteImagePhase) -> Content) {
+    public init(url: URL, content: @escaping (RemoteImagePhase) -> Content) {
         self.viewModel = RemoteImageViewModel(url: url)
         self.content = content
     }
 
     public var body: some View {
         content(viewModel.phase)
+            .onAppear {
+                viewModel.load()
+            }
     }
 }
