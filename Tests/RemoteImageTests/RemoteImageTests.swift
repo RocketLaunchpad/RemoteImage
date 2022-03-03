@@ -2,10 +2,12 @@ import XCTest
 @testable import RemoteImage
 
 final class RemoteImageTests: XCTestCase {
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(RemoteImage().text, "Hello, World!")
+    func testExample() async throws {
+        let loader = ImageLoader()
+        let url = URL(string: "http://www.lenna.org/full/l_hires.jpg")!
+
+        for _ in 0..<3 {
+            _ = try await loader.loadImage(from: url)
+        }
     }
 }
