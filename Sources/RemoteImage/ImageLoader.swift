@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Logging
 import SwiftUI
 
 public enum ImageLoaderError: Error {
@@ -18,18 +19,24 @@ public actor ImageLoader {
 
     public static let `default` = ImageLoader(identifier: "default")
 
-    private let identifier: String
+    private let log: Logger
 
     private let session: URLSession
 
     private var downloadTasks: [URL: Task<ImageType, Error>] = [:]
 
-    public init(identifier: String, memoryCacheSize: Int = 10 * (1 << 20), fileSystemCacheSize: Int = 200 * (1 << 20)) {
-        self.identifier = identifier
+    public init(identifier: String,
+                logLevel: Logger.Level = .warning,
+                memoryCacheSize: Int = 10 * (1 << 20),
+                fileSystemCacheSize: Int = 200 * (1 << 20)) {
+
+        var log = Logger(label: "[ImageLoader.\(identifier)]")
+        log.logLevel = logLevel
+        self.log = log
 
         let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         let diskCacheURL = cachesURL.appendingPathComponent("ImageCache-\(identifier)")
-        log.info("[ImageLoader.\(identifier)] diskCacheURL: \(diskCacheURL)")
+        log.info("diskCacheURL: \(diskCacheURL)")
 
         let cache = URLCache(
             memoryCapacity: memoryCacheSize,
@@ -63,21 +70,20 @@ public actor ImageLoader {
         let (data, response) = try await data(for: request(for: url))
         let end = Date().timeIntervalSinceReferenceDate
 
-        let msg = String(format: "[ImageLoader.\(identifier)] Downloaded %ld byte(s) in %.03f second(s)", data.count, end - start)
-        log.info("\(msg)")
+        log.info("\(String(format: "Downloaded %ld byte(s) in %.03f second(s)", data.count, end - start))")
 
         guard let response = response as? HTTPURLResponse else {
-            log.error("[ImageLoader.\(identifier)] response is not an HTTPURLResponse")
+            log.error("response is not an HTTPURLResponse")
             throw ImageLoaderError.invalidResponse
         }
 
         guard 200...299 ~= response.statusCode else {
-            log.error("[ImageLoader.\(identifier)] Invalid status code \(response.statusCode)")
+            log.error("Invalid status code \(response.statusCode)")
             throw ImageLoaderError.httpStatusError(response.statusCode)
         }
 
         guard let image = ImageType(data: data) else {
-            log.error("[ImageLoader.\(identifier)] Unable to read image -- \(String(describing: ImageType.self)) initializer returned nil")
+            log.error("Unable to read image -- \(String(describing: ImageType.self)) initializer returned nil")
             throw ImageLoaderError.unableToReadImage
         }
 
