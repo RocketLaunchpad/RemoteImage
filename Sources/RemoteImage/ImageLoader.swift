@@ -67,17 +67,17 @@ public actor ImageLoader {
         log.info("\(msg)")
 
         guard let response = response as? HTTPURLResponse else {
-            log.error("response is not an HTTPURLResponse")
+            log.error("[ImageLoader.\(identifier)] response is not an HTTPURLResponse")
             throw ImageLoaderError.invalidResponse
         }
 
         guard 200...299 ~= response.statusCode else {
-            log.error("Invalid status code \(response.statusCode)")
+            log.error("[ImageLoader.\(identifier)] Invalid status code \(response.statusCode)")
             throw ImageLoaderError.httpStatusError(response.statusCode)
         }
 
         guard let image = ImageType(data: data) else {
-            log.error("Unable to read image -- \(String(describing: ImageType.self)) initializer returned nil")
+            log.error("[ImageLoader.\(identifier)] Unable to read image -- \(String(describing: ImageType.self)) initializer returned nil")
             throw ImageLoaderError.unableToReadImage
         }
 
