@@ -69,8 +69,11 @@ public struct RemoteImage<Content>: View where Content: View {
 
     private var content: (RemoteImagePhase) -> Content
 
-    public init(url: URL, @ViewBuilder content: @escaping (RemoteImagePhase) -> Content) {
+    private var unloadOnDisappear: Bool
+
+    public init(url: URL, unloadOnDisappear: Bool = true, @ViewBuilder content: @escaping (RemoteImagePhase) -> Content) {
         self.viewModel = RemoteImageViewModel(url: url)
+        self.unloadOnDisappear = unloadOnDisappear
         self.content = content
     }
 
@@ -80,7 +83,9 @@ public struct RemoteImage<Content>: View where Content: View {
                 viewModel.load(imageLoader: imageLoader)
             }
             .onDisappear {
-                viewModel.unload()
+                if unloadOnDisappear {
+                    viewModel.unload()
+                }
             }
     }
 }
