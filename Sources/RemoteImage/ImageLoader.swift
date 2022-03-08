@@ -44,7 +44,7 @@ public actor ImageLoader {
     private var downloadTasks: [URL: Task<ImageType, Error>] = [:]
 
     public init(identifier: String,
-                logLevel: Logger.Level = .warning,
+                logLevel: Logger.Level = .info,
                 memoryCacheSize: Int = 10 * (1 << 20),
                 fileSystemCacheSize: Int = 200 * (1 << 20)) {
 
@@ -111,7 +111,8 @@ public actor ImageLoader {
     private func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         if #available(iOS 15.0, *) {
             return try await session.data(for: request)
-        } else {
+        }
+        else {
             return try await withCheckedThrowingContinuation { continuation in
                 session.dataTask(with: request) { data, response, error in
                     guard let data = data, let response = response else {
